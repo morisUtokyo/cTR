@@ -21,6 +21,21 @@ outputs
 
 to the directory named clustering_result.
 
+An example of a fasta file of representative reads is:
+> \> GroupSize = 10, Diameter = 4, RadiusFromCentroid = 4, CentroidReadName = B483,read1, CentroidReadLength = 166
+> 
+> (its read is omitted)
+> 
+> \>GroupSize = 8, Diameter = 4, RadiusFromCentroid = 2, CentroidReadName = B144,read1, CentroidReadLength = 152
+> 
+> (its read is omitted)
+
+* GroupSize = N : The number of elements in the group is N.
+* Diameter = D : The maximum distance between a pair of elements in the group is D.
+* RadiusFromCentroid = R : The maximum distance from the centroid of the group to a memeber is R.
+* CentroidReadName = ID : The read identifier of the centroid is ID.
+* CentroidReadLength = L : The length of the read of the centroid is L.
+
 ## Outline of the algorithm  
 * First, this program divides a set of PacBio HiFi reads collected from one individual into one or two alleles (haplotypes). For this, we measure the distance of any pair of reads, and group them into one or two groups such that the distance of any pair of elements is smaller than a given threshold. Assuming that the error rate of PacBio HiFi reads ranges from 0.1% to 0.5%, we set the maximum threshold to 1% (#define MAX_DIFF_RATIO  0.01 in clusterTR.h), which allows us to identify one or two groups typically except for reads with many sequencing errors. From each group, we select a representative read that is the centroid in the group that minimizes the sum of the distances from it to the other reads. Overall, one or two representative reads are output from one individual at each locus. 
 
