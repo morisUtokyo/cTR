@@ -13,9 +13,9 @@ For your convenience, a copy of the KSW2 program is placed on this github.
 
 ## Usage
 
-cTR [-acs] [-f fasta file] [-d output directory] <fasta file name>
--f: Input a fasta file name without .fasta
--i: Input directory
--d: Output the results to the specified directory 
--a: Output a detailed analysis of groups
--c: Output a fasta file of representative reads of groups
+cTR [-ac] [-f fasta file] [-d output directory]
+* -f: Input a fasta file name without .fasta
+* -i: Input directory
+* -d: Output the results to the specified directory 
+* -a: Output a detailed analysis of groups
+* -c: Output a fasta file of representative reads of groups
