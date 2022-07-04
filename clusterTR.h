@@ -46,7 +46,7 @@ int  *readLen;  // read length for all reads
 int  **dMat;    // matric of distances between reads
 int  **auxQ;   // auxiliary table Q for neighbor joining
 
-FILE *fp_repCentroids, *fp_analysis;
+FILE *fp_repCentroids, *fp_analysis, *fp_table;
 
 // Features of the parent in NJnode
 #define NO_PARENT   -2
@@ -101,7 +101,7 @@ void printNJtree(int root, int *individualReads, int *arg_readLen, NJnode *arg_N
 void clustering_from_NJtree(int NJroot, int *centroidList, int *arg_readLen, NJnode *arg_NJtree, char **arg_readIDs, char **arg_reads, int **dMat_centroid);
 centroidPair cluster_into_two_haplotypes(int NJroot, int NumNodes, int rootNode, int **arg_dMat, int *individualReads, int *arg_readLen, int num_reads);
 
-void comp_repCentroids(char *inputFile, char *directory, int print_centroid_fasta, int print_analysis, int print_CIGAR);
+void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDirectory, int print_centroid_fasta, int print_analysis, int print_CIGAR);
 
 int Lempel_Ziv(char *s);
 
@@ -110,25 +110,3 @@ int Lempel_Ziv(char *s);
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define DIFF(x, y) ((x) > (y) ? ((x) - (y)) : ((y) - (x)))
-
-//For debugging with #ifdef
-
-//#define Select_centroids
-//#define NJtree_centroids
-
-//
-//#define DUMP_dMat
-//#define DUMP_two_haplotypes
-
-//#define DEBUG_feed
-//#define DEBUG_group_individuals
-//#define DEBUG_dMat1
-//#define DUMP_auxQ
-
-//#define DEBUG_dMat2
-//#define DUMP_NJtree
-
-//#define DEBUG_NJ1
-
-
-//#define USE_BENCHMARK

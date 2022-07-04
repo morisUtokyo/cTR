@@ -112,6 +112,7 @@ int same_individual(char *readID1, char *readID2){
     return(0);
 }
 
+//#define DUMP_DISTANCE
 centroidPair cluster_reads_of_an_individual(int num_reads, int *individualReads, char **arg_reads, int *arg_readLen, int print_CIGAR){
     
     centroidPair centPair;
@@ -122,6 +123,10 @@ centroidPair cluster_reads_of_an_individual(int num_reads, int *individualReads,
         // Use reads[][] and readLen[] to compute dMat[][]
         //---------------------------------------------------------
         int **dMat_individual = compute_edit_distance(num_reads, individualReads, arg_reads, arg_readLen, print_CIGAR);
+        
+        #ifdef DUMP_DISTANCE
+        simple_dump_dMat(num_reads, individualReads, arg_readLen, dMat_individual);
+        #endif
 
         //---------------------------------------------------------
         // Generate the neighbor joining (NJ) tree
@@ -156,25 +161,16 @@ centroidPair cluster_reads_of_an_individual(int num_reads, int *individualReads,
             }
         }
     }
-    /*
-    else if(num_reads == 1){
-        centPair.numCentroids = 1; //homozygous
-        centPair.group1.repReadID = individualReads[0];
-        centPair.group1.size = 1;
-        centPair.group1.diameter = 0;
-        centPair.group1.radius = 0;
-        centPair.group1.readLen = arg_readLen[individualReads[0]];
-        centPair.group1.members[0] = individualReads[0];
-    }
-     */
     return(centPair);
 }
 
+//#define Select_centroids
 int putCentroidsSub(int *centroidList, int numCentroids, oneCentroid Cent, int *individualReads, char **arg_readIDs, int *arg_readLen){
  
     int next_i = numCentroids;
     int deleted = 1;
-    if( 1 < Cent.size )
+    if( 0 < Cent.size )
+    //if( 1 < Cent.size )
     {
         // repReadID has a local ID (0,1,...) in each individual, but we need to renumber repReadID when we merged reads from multiple individuals.
         centroidList[next_i++] = individualReads[Cent.repReadID];
@@ -197,16 +193,19 @@ int putCentroids(int *centroidList, int numCentroids, centroidPair centPair, int
     if(1 <= centPair.numCentroids){
         Cent = centPair.group1;
         next_i = putCentroidsSub(centroidList, next_i, Cent, individualReads, arg_readIDs, arg_readLen);
+        //printf("First\t\t%s\t%d\t%d\t%d\n", arg_readIDs[individualReads[Cent.repReadID]], Cent.size, next_i, centPair.numCentroids);
     }
-    // If the two haplotypes are homozygous, add the first group to the list
+    // If the two haplotypes are homozygous, add the first group to the list as well
     if(1 == centPair.numCentroids){
         Cent = centPair.group1;
         next_i = putCentroidsSub(centroidList, next_i, Cent, individualReads, arg_readIDs, arg_readLen);
+        //printf("Second homo\t%s\t%d\t%d\n", arg_readIDs[individualReads[Cent.repReadID]], Cent.size, next_i);
     }
     // Process the second group when we have two centroids
     if(2 == centPair.numCentroids){
         Cent = centPair.group2;
         next_i = putCentroidsSub(centroidList, next_i, Cent, individualReads, arg_readIDs, arg_readLen);
+        //printf("Second hetero\t%s\t%d\t%d\n", arg_readIDs[individualReads[Cent.repReadID]], Cent.size, next_i);
     }
     return(next_i);
 }
@@ -239,27 +238,33 @@ int top80p(oneCentroid *repCentroids, int numCentroids){
     return(numCentroids);
 }
 
-void comp_repCentroids(char *inputFile, char *directory, int print_centroid_fasta, int print_analysis, int print_CIGAR){
+void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDirectory, int print_centroid_fasta, int print_analysis, int print_CIGAR){
 
     // Specify the output files
-    char inputFileTmp[100];
-    strcpy(inputFileTmp, inputFile);
-    char *fastaFileName = strtok(inputFileTmp, ".");
+    char inputFile[1000]="";
+    strcat(inputFile, inputDirectory);
+    strcat(inputFile, fastaFileName);
+    strcat(inputFile, ".fasta");
     
     if(print_centroid_fasta == 1){
         char file_repCentroids[100] = "";
-        strcat(file_repCentroids, directory);
+        strcat(file_repCentroids, outputDirectory);
         strcat(file_repCentroids, fastaFileName);
         strcat(file_repCentroids, "_rep.fasta");
         fp_repCentroids = fopen(file_repCentroids, "w");
     }
     if(print_analysis == 1){
         char file_analysis[100] = "";
-        strcat(file_analysis, directory);
+        strcat(file_analysis, outputDirectory);
         strcat(file_analysis, fastaFileName);
         strcat(file_analysis, "_analysis.txt");
         fp_analysis     = fopen(file_analysis, "w");
     }
+    char file_table[100] = "";
+    strcat(file_table, outputDirectory);
+    strcat(file_table, fastaFileName);
+    strcat(file_table, "_table.txt");
+    fp_table     = fopen(file_table, "w");
     
     //---------------------------------------------------------
     // Feed reads from the input fasta file
@@ -323,7 +328,7 @@ void comp_repCentroids(char *inputFile, char *directory, int print_centroid_fast
     if(1 < numCentroids){
         // Output representatives of centroids
         int **dMat_centroids = compute_edit_distance(numCentroids, centroidList, reads, readLen, print_CIGAR);
-        #ifdef DUMP_dMat
+        #ifdef DUMP_DISTANCE
         simple_dump_dMat(numCentroids, centroidList, readLen, dMat_centroids);
         #endif
         int NJroot = generate_NJtree_for_centroids( numCentroids, dMat_centroids);
@@ -347,8 +352,10 @@ void comp_repCentroids(char *inputFile, char *directory, int print_centroid_fast
             for(int i=0; i<numRepCentroids; i++){
                 oneCentroid Cent = repCentroids[i];
                 print_centroid(fp_analysis, "\n", Cent);
-                for(int i=0; i<Cent.size; i++)
+                for(int i=0; i<Cent.size; i++){
                     fprintf(fp_analysis, "(%s,%d) ", readIDs[Cent.members[i]], readLen[Cent.members[i]]);
+                    fprintf(fp_table, "%s\t%s\n", readIDs[Cent.members[i]], Cent.readName);
+                }
                 fprintf(fp_analysis, "\n");
             }
             // Output the NJ tree of representatives of centroids
@@ -360,7 +367,6 @@ void comp_repCentroids(char *inputFile, char *directory, int print_centroid_fast
             fprintf(fp_analysis, "\nTh NJ tree of representative centroids\n");
             printNJtree(NJroot, repCentroidsList, readLen, NJtree, readIDs);
         }
-        
     }
     //else{ fprintf(stderr, "No informative centroids are found in %s.\n", inputFile);}
     
@@ -376,7 +382,9 @@ void comp_repCentroids(char *inputFile, char *directory, int print_centroid_fast
     
     if(print_analysis == 1)         fclose(fp_analysis);
     if(print_centroid_fasta == 1)   fclose(fp_repCentroids);
+    fclose(fp_table);
     
+    /*
     // Print a brief statistics of representative centorids
     int num_top80Groups = top80p(repCentroids, numRepCentroids);
     printf( " %d %d", num_top80Groups, numRepCentroids);
@@ -386,6 +394,6 @@ void comp_repCentroids(char *inputFile, char *directory, int print_centroid_fast
         printf( " %d %d %d", repCentroids[i].size, repCentroids[i].readLen, LZC);
     }
     printf("\n");
-    
+    */
     free_global_variables();
 }
