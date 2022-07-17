@@ -2,7 +2,7 @@
 
 cTR is a tool for clustering PacBio HiFi reads with mosaic tandem repeats from the same locus. It outputs a set of representative reads that are highly similar to each other. 
 
-cTR use KSW2, a library to align a pair of reads that implements dynamic programming. Obtain a copy of the KSW2 program from:
+cTR uses KSW2, a library to align a pair of reads that implements dynamic programming. Obtain a copy of the KSW2 program from:
 
 https://github.com/lh3/ksw2
 
