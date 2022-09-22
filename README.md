@@ -2,9 +2,9 @@
 
 cTR is a tool for clustering PacBio HiFi reads with mosaic tandem repeats from the same locus. It feeds a fasta file of mosaic tandem repeats at a focal locus and assumes that each read is annotated with the individual identifier and the read identifier. For example, in the following fasta file, the first annotation "0,0,(ACC)32(GTTT)30" shows the individual ID is 0, the read ID is 0, and the pattern of the mosaic tandem repeat is (ACC)32(GTTT)30, which means ACC occurs 32 times and GTTT 30 times. The string in the second row is identical to the pattern.
 
-> 0,0,(ACC)32(GTTT)30
+> > 0,0,(ACC)32(GTTT)30
 ACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTT
-> 0,1,(ACC)32(GTTT)30
+> > 0,1,(ACC)32(GTTT)30
 ACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCACCGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTTGTTT
 
 cTR outputs a set of representative reads that are highly similar to each other. 
