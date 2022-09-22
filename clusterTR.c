@@ -110,7 +110,8 @@ void disconnect_subroot_of_NJtree_sub(int subroot, int left_node, int right_node
         tmp_diameter_sum_len = arg_NJtree[right_node].diameter_sum_len;
     }
     // If the small diameter requirement is not met
-    if(tmp_diameter > (int)ceil(tmp_diameter_sum_len * (double)MAX_DIFF_RATIO) )
+    if(tmp_diameter > tmp_diameter_sum_len * (double)MAX_DIFF_RATIO )
+    //if(tmp_diameter > (int)ceil(tmp_diameter_sum_len * (double)MAX_DIFF_RATIO) )
     {
         int disconnected_node, other_node;
         // Disconnect the child with a greater distance
@@ -211,7 +212,8 @@ centroidPair one_haplotype(int rootNode, int NumNodes, int **arg_dMat, int *arg_
     #ifdef DUMP_two_haplotypes
     fprintf(stderr, "\ndiameter = %d, read pair = (%d,%d)\n", diameter, Nodes[diameter_i], Nodes[diameter_j]);
     #endif
-    if( diameter <= (int)ceil((arg_readLen[diameter_i] + arg_readLen[diameter_j]) * MAX_DIFF_RATIO) )
+    if( diameter < (arg_readLen[diameter_i] + arg_readLen[diameter_j]) * MAX_DIFF_RATIO + 1 )
+    //if( diameter <= (int)ceil((arg_readLen[diameter_i] + arg_readLen[diameter_j]) * MAX_DIFF_RATIO) )
     {
         #ifdef DUMP_two_haplotypes
         fprintf(stderr, "No need to divide into two haplotypes\n");

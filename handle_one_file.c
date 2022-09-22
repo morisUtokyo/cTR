@@ -78,6 +78,7 @@ int handle_one_file(char *inputFile){
             }
             readIDs[read_cnt][i-1] = '\0';
             cnt = 0;
+            
         }else{
             for(i=0; s[i]!='\0' && s[i]!='\n'; i++){
                 switch(s[i]){

@@ -107,6 +107,8 @@ int same_individual(char *readID1, char *readID2){
     while(readID1[i] == readID2[i]){
         if(readID1[i] == ',')
             return(1);
+        if(readID1[i] == '\0' || readID2[i] == '\0')
+            return(0);  // When no comma is found, the individual ID is missing.
         i++;
     }
     return(0);
