@@ -60,7 +60,7 @@ int handle_one_file(char *inputFile){
             exit(EXIT_FAILURE);
         }
         if( MAX_NUMBER_READS < read_cnt){
-            fprintf(stderr, "fatal error: the number of reads must be at most %i.\n", MAX_NUMBER_READS);
+            fprintf(stderr, "fatal error: the number of reads must be at most %i. read_cnt=%d\n", MAX_NUMBER_READS, read_cnt);
             free_global_variables_and_exit();
             exit(EXIT_FAILURE);
         }

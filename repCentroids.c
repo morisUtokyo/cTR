@@ -33,6 +33,8 @@ void free_global_variables_and_exit(){
     exit(EXIT_FAILURE);
 }
 
+//#define DEBUG_feed
+
 void malloc_global_variables(){
     // Allocate the main memory for global variables in the heap
     reads = malloc(sizeof(int *) * MAX_NUMBER_READS);
@@ -74,7 +76,7 @@ void malloc_global_variables(){
     if(repCentroids == NULL){ free_global_variables_and_exit(); }
     
 #ifdef DEBUG_feed
-    fprintf(stderr, "Succeeded in malooc (handle_one_file.c)\n");
+    fprintf(stderr, "Succeeded in malloc (handle_one_file.c)\n");
 #endif
     
 }
@@ -115,6 +117,7 @@ int same_individual(char *readID1, char *readID2){
 }
 
 //#define DUMP_DISTANCE
+//#define DUMP_NJtree
 centroidPair cluster_reads_of_an_individual(int num_reads, int *individualReads, char **arg_reads, int *arg_readLen, int print_CIGAR){
     
     centroidPair centPair;
@@ -125,29 +128,24 @@ centroidPair cluster_reads_of_an_individual(int num_reads, int *individualReads,
         // Use reads[][] and readLen[] to compute dMat[][]
         //---------------------------------------------------------
         int **dMat_individual = compute_edit_distance(num_reads, individualReads, arg_reads, arg_readLen, print_CIGAR);
-        
-        #ifdef DUMP_DISTANCE
-        simple_dump_dMat(num_reads, individualReads, arg_readLen, dMat_individual);
-        #endif
-
+            #ifdef DUMP_DISTANCE
+            simple_dump_dMat(num_reads, individualReads, arg_readLen, dMat_individual);
+            #endif
         //---------------------------------------------------------
         // Generate the neighbor joining (NJ) tree
         // Use readLen[] and dMat[][] to compute NJtree[]
         //---------------------------------------------------------
         int NJroot = generate_NJtree_from_non_outliers( num_reads, individualReads, arg_readLen, dMat_individual );
-        #ifdef DUMP_NJtree
-        printNJtree(NJroot, individualReads, arg_readLen, NJtree);
-        #endif
-
+            #ifdef DUMP_NJtree
+            printNJtree(NJroot, individualReads, arg_readLen, NJtree, readIDs);
+            #endif
         //---------------------------------------------------------
         // Divide into two haplotypes if the NJ tree is not empty.
         // Use dMat[][] and readLen[]
         //---------------------------------------------------------
-        if(NJroot != -1){   // The NJ tree is not empty.
-            // Group into two haplotypes
+        if(NJroot != -1)  // The NJ tree is not empty. Group into two haplotypes
             centPair =  cluster_into_two_haplotypes(NJroot, NJroot+1, NJroot, dMat_individual, individualReads, readLen, num_reads);
-        }
-        
+        //fprintf(stderr, "numCentroids=%d\n", centPair.numCentroids);
         //---------------------------------------------------------
         // Initialize dMat and NJroot
         //---------------------------------------------------------
@@ -268,6 +266,12 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
     strcat(file_table, "_table.txt");
     fp_table     = fopen(file_table, "w");
     
+    strcpy(file_table, "");
+    strcat(file_table, outputDirectory);
+    strcat(file_table, fastaFileName);
+    strcat(file_table, "_hap_cent_table.txt");
+    fp_hap_cent_table = fopen(file_table, "w");
+    
     //---------------------------------------------------------
     // Feed reads from the input fasta file
     // Initialize reads[][], readIDs[][], and readLen[]
@@ -280,7 +284,6 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
     malloc_global_variables();
     
     int read_cnt = handle_one_file(inputFile);
-    
     if(print_analysis == 1){
         fprintf(fp_analysis, "The input file name is %s.\nThe read count is %d.\n", inputFile, read_cnt);
         fflush(fp_analysis);
@@ -296,22 +299,26 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
     
     int focal = 0;
     int numReadsIndividual = 0;
-    int individualReads[MAX_NUMBER_READS_FROM_AN_INDIVIDUAL];
+    int *individualReads;
+    individualReads = malloc(sizeof(int) * MAX_NUMBER_READS_FROM_AN_INDIVIDUAL);
+    //int individualReads[MAX_NUMBER_READS_FROM_AN_INDIVIDUAL];
     
     centroidPair centPair;
-    int centroidList[MAX_NUMBER_INDIVIDUALS];
+    int *centroidList;
+    centroidList = malloc(sizeof(int) * MAX_NUMBER_INDIVIDUALS);
+    //int centroidList[MAX_NUMBER_INDIVIDUALS];
     int numCentroids = 0;
     
-    for(int i=0; i<read_cnt; i++){
-        if(same_individual(readIDs[focal], readIDs[i]) == 0){
+    for(int k=0; k<read_cnt; k++){
+        if(same_individual(readIDs[focal], readIDs[k]) == 0){
             // We hit a read from another individual.
             centPair = cluster_reads_of_an_individual(numReadsIndividual, individualReads, reads, readLen, print_CIGAR);
             numCentroids = putCentroids(centroidList, numCentroids, centPair, individualReads, readIDs, readLen);
-            focal = i;
+            focal = k;
             numReadsIndividual = 0;
         }
         // Even when focal == 0,  this works properly.
-        individualReads[i-focal] = i;
+        individualReads[k - focal] = k;
         numReadsIndividual++;
     }
     centPair = cluster_reads_of_an_individual(numReadsIndividual, individualReads, reads, readLen, print_CIGAR);
@@ -330,16 +337,10 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
     if(1 < numCentroids){
         // Output representatives of centroids
         int **dMat_centroids = compute_edit_distance(numCentroids, centroidList, reads, readLen, print_CIGAR);
-        #ifdef DUMP_DISTANCE
-        simple_dump_dMat(numCentroids, centroidList, readLen, dMat_centroids);
-        #endif
         int NJroot = generate_NJtree_for_centroids( numCentroids, dMat_centroids);
         clustering_from_NJtree(NJroot, centroidList, readLen, NJtree, readIDs, reads, dMat_centroids);
-        //printNJtree(NJroot, centroidList, readLen, NJtree, readIDs);
-        
         // Sort repCentroids
         qsort(repCentroids, numRepCentroids, sizeof(oneCentroid), compCentroids);
-        
         // Print a fasta file of the reads for group representatives
         if(print_centroid_fasta == 1){
             for(int i=0; i<numRepCentroids; i++){
@@ -350,28 +351,50 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
         }
         // Print an analysis of groups
         if(print_analysis == 1){
+            int *readIDsCent;
+            readIDsCent = malloc(sizeof(int *) * MAX_NUMBER_READS);
+            for(int i=0; i<MAX_NUMBER_READS; i++) readIDsCent[i]=-1; // Initialize
+            
             // Print the statistics and members of each cluster
+            int max_readID=-1;
             for(int i=0; i<numRepCentroids; i++){
                 oneCentroid Cent = repCentroids[i];
                 print_centroid(fp_analysis, "\n", Cent);
-                for(int i=0; i<Cent.size; i++){
-                    fprintf(fp_analysis, "(%s,%d) ", readIDs[Cent.members[i]], readLen[Cent.members[i]]);
-                    fprintf(fp_table, "%s\t%s\n", readIDs[Cent.members[i]], Cent.readName);
+                for(int j=0; j<Cent.size; j++){
+                    fprintf(fp_analysis, "(%s,%d) ", readIDs[Cent.members[j]], readLen[Cent.members[j]]);
+                    fprintf(fp_table, "%s\t%s\n", readIDs[Cent.members[j]], Cent.readName);
+                    readIDsCent[Cent.members[j]] = Cent.repReadID;
+                    if(max_readID < Cent.members[j])
+                        max_readID = Cent.members[j];
                 }
                 fprintf(fp_analysis, "\n");
             }
+            // Print pairs of haplotype rep readIDs and their centroids
+            
+            if(MAX_NUMBER_READS < max_readID){
+                fprintf(stderr, "fatal error: The number of reads exceeds %d. Set MAX_NUMBER_READS to a larger value.", MAX_NUMBER_READS);
+                exit(EXIT_FAILURE);
+            }
+            
+            for(int i=0; i<=max_readID; i++)
+                if(readIDsCent[i] != -1){
+                    fprintf(fp_hap_cent_table, "%s\t%s\n", readIDs[i], readIDs[readIDsCent[i]]);
+                }
+            free(readIDsCent);
+            
             // Output the NJ tree of representatives of centroids
-            int repCentroidsList[MAX_NUMBER_INDIVIDUALS];
+            int *repCentroidsList;
+            repCentroidsList = malloc(sizeof(int) * MAX_NUMBER_INDIVIDUALS);
+            //int repCentroidsList[MAX_NUMBER_INDIVIDUALS];
             for(int i=0; i < numRepCentroids; i++)
                 repCentroidsList[i] = repCentroids[i].repReadID;
             int **dMat_repCentroids = compute_edit_distance(numRepCentroids, repCentroidsList, reads, readLen, print_CIGAR);
             NJroot = generate_NJtree_for_centroids( numRepCentroids, dMat_repCentroids);
             fprintf(fp_analysis, "\nTh NJ tree of representative centroids\n");
             printNJtree(NJroot, repCentroidsList, readLen, NJtree, readIDs);
+            free(repCentroidsList);
         }
     }
-    //else{ fprintf(stderr, "No informative centroids are found in %s.\n", inputFile);}
-    
     gettimeofday(&e, NULL);
     time_clustering = (e.tv_sec - s.tv_sec) + (e.tv_usec - s.tv_usec)*1.0E-6;
     
@@ -385,17 +408,9 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
     if(print_analysis == 1)         fclose(fp_analysis);
     if(print_centroid_fasta == 1)   fclose(fp_repCentroids);
     fclose(fp_table);
+    fclose(fp_hap_cent_table);
     
-    /*
-    // Print a brief statistics of representative centorids
-    int num_top80Groups = top80p(repCentroids, numRepCentroids);
-    printf( " %d %d", num_top80Groups, numRepCentroids);
-    for(int i=0; i<numRepCentroids; i++){
-        // Compute the Lempel-Ziv complexity of the rep. read
-        int LZC = Lempel_Ziv(reads[repCentroids[i].repReadID]);
-        printf( " %d %d %d", repCentroids[i].size, repCentroids[i].readLen, LZC);
-    }
-    printf("\n");
-    */
+    free(individualReads);
+    free(centroidList);
     free_global_variables();
 }

@@ -30,10 +30,11 @@
 // Key default parameters
 #define MAX_DIFF_RATIO  0.01 // 0.03
 
-#define MAX_NUMBER_READS    10000
-#define MAX_READ_LENGTH     30000
+#define MAX_NUMBER_READS        100000
+#define MAX_READ_LENGTH         30000
+#define MAX_NUMBER_INDIVIDUALS  30000
 #define MAX_NUMBER_READS_FROM_AN_INDIVIDUAL    200
-#define MAX_NUMBER_INDIVIDUALS 1000
+
 
 // Internal variables and data structures
 #define MATCH_SCORE     1
@@ -46,7 +47,7 @@ int  *readLen;  // read length for all reads
 int  **dMat;    // matric of distances between reads
 int  **auxQ;   // auxiliary table Q for neighbor joining
 
-FILE *fp_repCentroids, *fp_analysis, *fp_table;
+FILE *fp_repCentroids, *fp_analysis, *fp_table, *fp_hap_cent_table;
 
 // Features of the parent in NJnode
 #define NO_PARENT   -2

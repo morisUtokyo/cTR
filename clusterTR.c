@@ -30,9 +30,7 @@ oneCentroid centroid(int *argReads, int numReads, int **arg_dMat){
             min_radius_i = i;
         }
     }
-#ifdef DUMP_two_haplotypes
-    fprintf(stderr, "centroid Read = %d, radius = %d, size of cluster = %d\n%", argReads[min_radius_i], min_radius, numReads);
-#endif
+    //fprintf(stderr, "centroid Read = %d, radius = %d, size of cluster = %d\n%", argReads[min_radius_i], min_radius, numReads);
     oneCentroid oneCent;
     oneCent.repReadID   = argReads[min_radius_i];
     oneCent.size        = numReads;
@@ -60,7 +58,9 @@ int leaves_in_the_group(int subroot, NJnode *arg_NJtree, int *leaves, int numLea
 
 void put_one_cluster_centroid(int subroot, NJnode *arg_NJtree, int *centroidList, char **arg_readIDs, char **arg_reads, int *arg_readLen, int **dMat_centroid)
 {
-    int leaves[MAX_NUMBER_READS];
+    int *leaves;
+    leaves = malloc(sizeof(int)*MAX_NUMBER_READS);
+    //int leaves[MAX_NUMBER_READS];
     int numLeaves = 0;
     numLeaves = leaves_in_the_group(subroot, arg_NJtree, leaves, numLeaves);
     if(0 < numLeaves){
@@ -74,15 +74,20 @@ void put_one_cluster_centroid(int subroot, NJnode *arg_NJtree, int *centroidList
         
         repCentroids[numRepCentroids++] = Cent;
     }
+    free(leaves);
 }
 
 void disconnect_subroot_of_NJtree_sub(int subroot, int left_node, int right_node, NJnode *arg_NJtree, int *centroidList, char **arg_readIDs, char **arg_reads, int *arg_readLen, int **dMat_centroid){
     
-    int leaves_left[MAX_NUMBER_INDIVIDUALS];
+    int *leaves_left;
+    leaves_left = malloc(sizeof(int) * MAX_NUMBER_INDIVIDUALS);
+    //int leaves_left[MAX_NUMBER_INDIVIDUALS];
     int numLeaves_left = 0;
     numLeaves_left = leaves_in_the_group(left_node, arg_NJtree, leaves_left, numLeaves_left);
     
-    int leaves_right[MAX_NUMBER_INDIVIDUALS];
+    int *leaves_right;
+    leaves_right = malloc(sizeof(int) * MAX_NUMBER_INDIVIDUALS);
+    //int leaves_right[MAX_NUMBER_INDIVIDUALS];
     int numLeaves_right = 0;
     numLeaves_right = leaves_in_the_group(right_node, arg_NJtree, leaves_right, numLeaves_right);
     
@@ -150,6 +155,8 @@ void disconnect_subroot_of_NJtree_sub(int subroot, int left_node, int right_node
     // If subroot is the representative of a group, compute the centroid.
     if(arg_NJtree[subroot].parent == NO_PARENT)
         put_one_cluster_centroid(subroot, arg_NJtree, centroidList, arg_readIDs, arg_reads, arg_readLen, dMat_centroid);
+    free(leaves_left);
+    free(leaves_right);
 }
 
 void disconnect_subroot_of_NJtree(int subroot, NJnode *arg_NJtree, int *centroidList, char **arg_readIDs, char **arg_reads, int *arg_readLen, int **dMat_centroid)
@@ -181,6 +188,7 @@ void clustering_from_NJtree(int NJroot, int *centroidList, int *arg_readLen, NJn
     disconnect_subroot_of_NJtree(NJroot, arg_NJtree, centroidList, arg_readIDs, arg_reads, arg_readLen, dMat_centroid);
 }
 
+//#define DUMP_two_haplotypes
 centroidPair one_haplotype(int rootNode, int NumNodes, int **arg_dMat, int *arg_readLen){
     int *Nodes   = malloc(sizeof(int)*NumNodes);
     NumNodes = inside(rootNode, Nodes, 0);
@@ -209,11 +217,12 @@ centroidPair one_haplotype(int rootNode, int NumNodes, int **arg_dMat, int *arg_
         }
     }
     centroidPair centPair;
-    #ifdef DUMP_two_haplotypes
-    fprintf(stderr, "\ndiameter = %d, read pair = (%d,%d)\n", diameter, Nodes[diameter_i], Nodes[diameter_j]);
-    #endif
-    if( diameter < (arg_readLen[diameter_i] + arg_readLen[diameter_j]) * MAX_DIFF_RATIO + 1 )
-    //if( diameter <= (int)ceil((arg_readLen[diameter_i] + arg_readLen[diameter_j]) * MAX_DIFF_RATIO) )
+        #ifdef DUMP_two_haplotypes
+        fprintf(stderr, "diameter = %d, read pair = (%d,%d), length=(%d,%d)\n", diameter, Nodes[diameter_i], Nodes[diameter_j], arg_readLen[Nodes[diameter_i]], arg_readLen[Nodes[diameter_j]]);
+        #endif
+    if( diameter < (arg_readLen[Nodes[diameter_i]] + arg_readLen[Nodes[diameter_j]]) * MAX_DIFF_RATIO + 1 )
+        // This serious bug was fixed on Jan. 29th, 2023.
+    //if( diameter < (arg_readLen[diameter_i] + arg_readLen[diameter_j]) * MAX_DIFF_RATIO + 1 )
     {
         #ifdef DUMP_two_haplotypes
         fprintf(stderr, "No need to divide into two haplotypes\n");
@@ -319,9 +328,7 @@ int min_diameter_node(int *Nodes, int NumNodes, int rootNode, int **arg_dMat){
     }
     free(insideNodes);
     free(outsideNodes);
-#ifdef DUMP_two_haplotypes
-    fprintf(stderr, "Max diamter of two haplotypes = %d, Min_diamster_node = %d\n", min_diameter, min_diameter_node);
-#endif
+    //fprintf(stderr, "Max diamter of two haplotypes = %d, Min_diamster_node = %d\n", min_diameter, min_diameter_node);
     return(min_diameter_node);
 }
 
@@ -331,53 +338,22 @@ centroidPair representatives_inside_outside(int insideRootNode, int *insideNodes
     int  *insideReads = malloc(sizeof(int) * numNodes);
     int *outsideReads = malloc(sizeof(int) * numNodes);
     
-#ifdef DUMP_two_haplotypes
-    fprintf(stderr, "inside = ");
-#endif
     for(int i=0; ; i++){
         if(insideNodes[i] == -1){
             break;
         }else{
-#ifdef DUMP_two_haplotypes
-            if(NJtree[insideNodes[i]].leaf != LEAF)
-                fprintf(stderr, "*");
-            fprintf(stderr, "%d ", insideNodes[i]);
-#endif
             if(NJtree[insideNodes[i]].leaf == LEAF)
                 insideReads[numInsideReads++] = insideNodes[i];
         }
     }
-#ifdef DUMP_two_haplotypes
-    fprintf(stderr, "\n");
-    fprintf(stderr, "outside = ");
-#endif
     for(int i=0; ; i++){
         if(outsideNodes[i] == -1){
             break;
         }else{
-#ifdef DUMP_two_haplotypes
-            if(NJtree[outsideNodes[i]].leaf != LEAF)
-                fprintf(stderr, "*");
-            fprintf(stderr, "%d ", outsideNodes[i]);
-#endif
             if(NJtree[outsideNodes[i]].leaf == LEAF)
                 outsideReads[numOutsideReads++] = outsideNodes[i];
         }
     }
-#ifdef DUMP_two_haplotypes
-    fprintf(stderr, "\n");
-    fprintf(stderr, "inside root = %d\tNum inside reads = %d\tNum outside reads = %d\n", insideRootNode, numInsideReads, numOutsideReads);
-    
-    int numAllReads = numInsideReads + numOutsideReads;
-    int *allReads = malloc(sizeof(int) * numAllReads);
-    for(int i=0; i < numInsideReads; i++)
-        allReads[i] = insideReads[i];
-    for(int i=0; i < numOutsideReads; i++)
-        allReads[i + numInsideReads] = outsideReads[i];
-    dump_dMat(allReads, numAllReads, arg_readLen, arg_dMat);
-    free(allReads);
-#endif
-    
     centroidPair centPair;
     centPair.numCentroids = 2;
     centPair.group1 = centroid( insideReads, numInsideReads,  arg_dMat);
@@ -388,6 +364,7 @@ centroidPair representatives_inside_outside(int insideRootNode, int *insideNodes
     return(centPair);
 }
 
+//#define DEBUG_cluster_into_two_haplotypes
 centroidPair cluster_into_two_haplotypes(int NJroot, int NumNodes, int rootNode, int **arg_dMat, int *individualReads, int *arg_readLen, int num_reads){
     
     // Initialize
@@ -395,10 +372,20 @@ centroidPair cluster_into_two_haplotypes(int NJroot, int NumNodes, int rootNode,
     for(int i=0; i<=NJroot; i++) Nodes[i] = i;
     
     // Generate a local list of read lengths
-    int readLenInd[MAX_NUMBER_READS_FROM_AN_INDIVIDUAL];
+    int *readLenInd;
+    readLenInd = malloc(sizeof(int)*MAX_NUMBER_READS_FROM_AN_INDIVIDUAL);
+    //int readLenInd[MAX_NUMBER_READS_FROM_AN_INDIVIDUAL];
     for(int i=0; i<num_reads; i++){
         readLenInd[i] = arg_readLen[individualReads[i]];
     }
+    
+    #ifdef DEBUG_cluster_into_two_haplotypes
+    fprintf(stderr, "NJroot=%d\tNumNodes=%d\tnum_reads=%d\n", NJroot, NumNodes, num_reads);
+    fprintf(stderr, "local readLen = ");
+    for(int i=0; i<num_reads; i++)
+        fprintf(stderr,"(%d,%d) ", i, readLenInd[i]);
+    fprintf(stderr, "\n");
+    #endif
     
     centroidPair centPair = one_haplotype(rootNode, NumNodes, arg_dMat, readLenInd);
     
@@ -414,5 +401,6 @@ centroidPair cluster_into_two_haplotypes(int NJroot, int NumNodes, int rootNode,
     }
     // Free the nodes
     free(Nodes);
+    free(readLenInd);
     return(centPair);
 }
