@@ -28,7 +28,7 @@
  */
 
 // Key default parameters
-#define MAX_DIFF_RATIO  0.01 // 0.03
+#define MAX_DIFF_RATIO  0.03 //0.01 // 0.03
 
 #define MAX_NUMBER_READS        100000
 #define MAX_READ_LENGTH         30000

@@ -125,10 +125,13 @@ int outlier(int iReadID, int num_reads,
     int sum_len;
     for(int i=0; i<num_reads; i++)
         if(i != iReadID){
+            //---------------------------------------------
             sum_len= arg_readLen[individualReads[iReadID]] +
                          arg_readLen[individualReads[i]];
-            if( arg_dMat[iReadID][i] < ceil(sum_len * MAX_DIFF_RATIO) )
+            if( arg_dMat[iReadID][i]
+               < ceil(sum_len * (double)MAX_DIFF_RATIO)  )
                 outlier_flag = 0;
+            //----------------------------------------------
         }
     return(outlier_flag);
 }

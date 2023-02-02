@@ -221,6 +221,7 @@ centroidPair one_haplotype(int rootNode, int NumNodes, int **arg_dMat, int *arg_
         #ifdef DUMP_two_haplotypes
         fprintf(stderr, "diameter = %d, read pair = (%d,%d), length=(%d,%d)\n", diameter, Nodes[diameter_i], Nodes[diameter_j], arg_readLen[Nodes[diameter_i]], arg_readLen[Nodes[diameter_j]]);
         #endif
+    //---------------------------------------------------------
     if( ceil( (arg_readLen[Nodes[diameter_i]] + arg_readLen[Nodes[diameter_j]]) * MAX_DIFF_RATIO ) < diameter  )
     {
         centPair.numCentroids = 2;
@@ -229,6 +230,7 @@ centroidPair one_haplotype(int rootNode, int NumNodes, int **arg_dMat, int *arg_
         centPair.numCentroids = 1;
         centPair.group1 = centroid(tmpReads, num_tmpReads, arg_dMat);
     }
+    //---------------------------------------------------------
     free(Nodes);
     free(tmpReads);
     return(centPair);
