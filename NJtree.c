@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <math.h>
 #include "ksw2.h"
 #include "clusterTR.h"
 
@@ -121,12 +122,12 @@ int generate_NJtree_for_centroids(int numCentroids, int **arg_dMat){
 int outlier(int iReadID, int num_reads,
             int *individualReads, int *arg_readLen, int **arg_dMat){
     int outlier_flag = 1;
+    int sum_len;
     for(int i=0; i<num_reads; i++)
         if(i != iReadID){
-            int sum_len= arg_readLen[individualReads[iReadID]] +
+            sum_len= arg_readLen[individualReads[iReadID]] +
                          arg_readLen[individualReads[i]];
-            if( arg_dMat[iReadID][i] < sum_len*(double)MAX_DIFF_RATIO+1 ) 
-            //if( arg_dMat[iReadID][i] <= (int)ceil(sum_len*(double)MAX_DIFF_RATIO) )
+            if( arg_dMat[iReadID][i] < ceil(sum_len * MAX_DIFF_RATIO) )
                 outlier_flag = 0;
         }
     return(outlier_flag);

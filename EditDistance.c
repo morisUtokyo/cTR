@@ -57,19 +57,6 @@ int **compute_edit_distance(int num_reads, int *individualReads, char **arg_read
             int score, distance;
             score = align(arg_reads[individualReads[i]], arg_reads[individualReads[j]], sc_mch, sc_mis, gapo, gape, print_CIGAR);
             distance = MIN( arg_readLen[individualReads[i]], arg_readLen[individualReads[j]] ) - score/sc_mch ;
-/*
-            int diff = DIFF(arg_readLen[individualReads[i]], arg_readLen[individualReads[j]] );
-            int min  = MIN( arg_readLen[individualReads[i]], arg_readLen[individualReads[j]] );
-            int margin = 3;
-            if( (int)(min * margin * (double)MAX_DIFF_RATIO) <= diff)
-                // The difference of the input lengths is a lower bound of the distance.
-                distance = diff;
-            else{
-                score = align(arg_reads[individualReads[i]], arg_reads[individualReads[j]], sc_mch, sc_mis, gapo, gape, print_CIGAR);
-                distance = MIN( arg_readLen[individualReads[i]], arg_readLen[individualReads[j]] ) - score/sc_mch ;
-            }
-*/
-            //int distance = MAX(readLen[i], readLen[j]) - score/sc_mch ;
             dMat[i][j] = distance;
             dMat[j][i] = distance;
         }

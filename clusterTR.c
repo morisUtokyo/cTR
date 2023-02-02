@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <math.h>
 #include "ksw2.h"
 #include "clusterTR.h"
 
@@ -220,24 +221,17 @@ centroidPair one_haplotype(int rootNode, int NumNodes, int **arg_dMat, int *arg_
         #ifdef DUMP_two_haplotypes
         fprintf(stderr, "diameter = %d, read pair = (%d,%d), length=(%d,%d)\n", diameter, Nodes[diameter_i], Nodes[diameter_j], arg_readLen[Nodes[diameter_i]], arg_readLen[Nodes[diameter_j]]);
         #endif
-    if( diameter < (arg_readLen[Nodes[diameter_i]] + arg_readLen[Nodes[diameter_j]]) * MAX_DIFF_RATIO + 1 )
-        // This serious bug was fixed on Jan. 29th, 2023.
-    //if( diameter < (arg_readLen[diameter_i] + arg_readLen[diameter_j]) * MAX_DIFF_RATIO + 1 )
+    if( ceil( (arg_readLen[Nodes[diameter_i]] + arg_readLen[Nodes[diameter_j]]) * MAX_DIFF_RATIO ) < diameter  )
     {
-        #ifdef DUMP_two_haplotypes
-        fprintf(stderr, "No need to divide into two haplotypes\n");
-        #endif
+        centPair.numCentroids = 2;
+
+    }else{
         centPair.numCentroids = 1;
         centPair.group1 = centroid(tmpReads, num_tmpReads, arg_dMat);
-        free(Nodes);
-        free(tmpReads);
-        return(centPair);
-    }else{
-        centPair.numCentroids = 2;
-        free(Nodes);
-        free(tmpReads);
-        return(centPair);
     }
+    free(Nodes);
+    free(tmpReads);
+    return(centPair);
 }
 
 int outside(int node, int insideRoot, int *outsideNodes, int ith){
