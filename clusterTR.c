@@ -116,8 +116,7 @@ void disconnect_subroot_of_NJtree_sub(int subroot, int left_node, int right_node
         tmp_diameter_sum_len = arg_NJtree[right_node].diameter_sum_len;
     }
     // If the small diameter requirement is not met
-    if(tmp_diameter > tmp_diameter_sum_len * (double)MAX_DIFF_RATIO )
-    //if(tmp_diameter > (int)ceil(tmp_diameter_sum_len * (double)MAX_DIFF_RATIO) )
+    if(tmp_diameter > tmp_diameter_sum_len / 2 * (double)MAX_DIAMETER )
     {
         int disconnected_node, other_node;
         // Disconnect the child with a greater distance
@@ -222,7 +221,7 @@ centroidPair one_haplotype(int rootNode, int NumNodes, int **arg_dMat, int *arg_
         fprintf(stderr, "diameter = %d, read pair = (%d,%d), length=(%d,%d)\n", diameter, Nodes[diameter_i], Nodes[diameter_j], arg_readLen[Nodes[diameter_i]], arg_readLen[Nodes[diameter_j]]);
         #endif
     //---------------------------------------------------------
-    if( ceil( (arg_readLen[Nodes[diameter_i]] + arg_readLen[Nodes[diameter_j]]) * MAX_DIFF_RATIO ) < diameter  )
+    if( ceil( (arg_readLen[Nodes[diameter_i]] + arg_readLen[Nodes[diameter_j]]) / 2 * MAX_DIFF_RATIO ) < diameter  )
     {
         centPair.numCentroids = 2;
 

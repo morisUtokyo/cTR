@@ -28,13 +28,14 @@
  */
 
 // Key default parameters
-#define MAX_DIFF_RATIO  0.03 //0.01 // 0.03
+#define MAX_DIFF_RATIO  0.01 // Maximum difference between tandem repeats in the two haplotypes
 
 #define MAX_NUMBER_READS        100000
 #define MAX_READ_LENGTH         30000
 #define MAX_NUMBER_INDIVIDUALS  30000
 #define MAX_NUMBER_READS_FROM_AN_INDIVIDUAL    200
 
+#define MAX_DIAMETER  0.03  // The maximum ratio of the cluster diameter to the average tandem repeat length in each cluster
 
 // Internal variables and data structures
 #define MATCH_SCORE     1
