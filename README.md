@@ -1,6 +1,6 @@
 ## Introduction
 
-cTR is a tool for clustering PacBio HiFi reads with mosaic tandem repeats from the same locus. It outputs a set of representative reads that are highly similar to each other. 
+cTR is a tool for clustering PacBio HiFi reads with mosaic tandem repeats that are collected from multiple samples at the same locus. It outputs a set of representative reads that are highly similar to each other. 
 
 cTR feeds such a fasta file that the annotation begins with a sample ID and a read ID. For example, the first row of ACCCC_GTTTT.fasta in the "test" directory shows that the sample and read IDs are 0 and 0, and the rest indicates mosaic tandem repeat pattern of the read string:
 
@@ -9,9 +9,9 @@ cTR feeds such a fasta file that the annotation begins with a sample ID and a re
     > 0,1,(ACCCC)22(GTTTT)22
     ACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCACCCCGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTTGTTTT
 
-cTR clusters reads from an identical sample into one or two groups, and outputs the representative each group. If two haplotypes are homozygous, one group is output; if two haplotypes are heterozygous, two groups are output. In one group, the maximum Levenshtein distance between a pair of reads is set to 0.01 times the average length of the reads. Each group of two groups also meets this condition. The default maximum value is set ot 0.01 because the maximum error rate of PacBio reads is less than 0.01 as of today but can be changed (say, 0.005) by redefining MAX_DIFF_RATIO in clusterTR.h.
+cTR clusters reads from an identical sample into one or two groups, and outputs the representative each group. If two haplotypes are homozygous, one group is output; if two haplotypes are heterozygous, two groups are output. In one group, the maximum Levenshtein distance between a pair of reads is 0.01 times the average length of the reads. Each of two groups also meets this condition. The default maximum value is set ot 0.01 because the maximum error rate of PacBio reads is less than 0.01 as of today. But it can be changed (say, 0.005) by redefining MAX_DIFF_RATIO in clusterTR.h.
 
-Subsequently, cTR further cluster representative reads from all samples into groups so that the maximum Levenshtein distance between a pair of reads in a group is smaller than the threshold. The maximum threshold is set to 0.03 by default but can be also changed by refinng MAX_DIAMETER in cluster.h. cTR outputs a representative of each group with an annotation of the form:
+Subsequently, cTR further clusters representative reads from all samples into groups so that the maximum Levenshtein distance between a pair of reads in a group is smaller than a threshold. The maximum threshold is set to 0.03 by default but can be also changed by redefining MAX_DIAMETER in cluster.h. cTR outputs a representative of each group with an annotation of the form:
 
     > GroupSize = N, Diameter = D, RadiusFromCentroid = R, CentroidReadName =  sampleID,readID, CentroidReadLength = L
 
