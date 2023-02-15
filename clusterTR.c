@@ -116,8 +116,8 @@ void disconnect_subroot_of_NJtree_sub(int subroot, int left_node, int right_node
         tmp_diameter_sum_len = arg_NJtree[right_node].diameter_sum_len;
     }
     // If the small diameter requirement is not met
-    if(tmp_diameter > tmp_diameter_sum_len / 2 * (double)MAX_DIAMETER )
-    {
+    int threshold = ceil(tmp_diameter_sum_len / 2 * (double)MAX_DIAMETER);
+    if(tmp_diameter > threshold){
         int disconnected_node, other_node;
         // Disconnect the child with a greater distance
         // The distances can be 0 and are equal.

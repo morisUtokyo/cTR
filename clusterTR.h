@@ -35,7 +35,7 @@
 #define MAX_NUMBER_INDIVIDUALS  30000
 #define MAX_NUMBER_READS_FROM_AN_INDIVIDUAL    200
 
-#define MAX_DIAMETER  0.03  // The maximum ratio of the cluster diameter to the average tandem repeat length in each cluster
+#define MAX_DIAMETER  0.03  // The maximum ratio of the cluster diameter to the average tandem repeat length in each cluster.  When the average length is L, the diameter of every cluster at most ceil(L * MAX_DIAMETER), where ceil(x) is the minimum integer >= x. For example, when MAX_DIAMETER=0.03 and L=15 (60), the diameter of every cluster is at most 1=ceil(0.45) and (2=ceil(1.8), respectively).
 
 // Internal variables and data structures
 #define MATCH_SCORE     1

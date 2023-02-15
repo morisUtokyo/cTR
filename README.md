@@ -11,7 +11,7 @@ cTR feeds such a fasta file that the annotation begins with a sample ID and a re
 
 cTR clusters reads from an identical sample into one or two groups, and outputs the representative each group. If two haplotypes are homozygous, one group is output; if two haplotypes are heterozygous, two groups are output. In one group, the maximum Levenshtein distance between a pair of reads is 0.01 times the average length of the reads. Each of two groups also meets this condition. The default maximum value is set ot 0.01 because the maximum error rate of PacBio reads is less than 0.01 as of today. But it can be changed (say, 0.005) by redefining MAX_DIFF_RATIO in clusterTR.h.
 
-Subsequently, cTR further clusters representative reads from all samples into groups so that the maximum Levenshtein distance between a pair of reads in a group is smaller than a threshold. The maximum threshold is set to 0.03 by default but can be also changed by redefining MAX_DIAMETER in cluster.h. cTR outputs a representative of each group with an annotation of the form:
+Subsequently, cTR further clusters representative reads from all samples into groups so that the maximum Levenshtein distance between a pair of reads in a group is smaller than a threshold times the average read length. The maximum threshold is set to 0.03 by default but can be also changed by redefining MAX_DIAMETER in cluster.h. Precisely, when the average length is L, the diameter of every cluster at most ceil(L  MAX_DIAMETER), where ceil(x) is the minimum integer >= x. For example, when we set MAX_DIAMETER=0.03 and L=15 (60), the diameter of every cluster is at most 1=ceil(0.45) and (2=ceil(1.8), respectively).cTR outputs a representative of each group with an annotation of the form:
 
     > GroupSize = N, Diameter = D, RadiusFromCentroid = R, CentroidReadName =  sampleID,readID, CentroidReadLength = L
 
@@ -56,7 +56,3 @@ https://github.com/lh3/ksw2
 > * Li, H (2018) Minimap2: pairwise alignment for nucleotide sequences. *Bioinformatics*, **34**:3094-3100.
 
 For your convenience, a copy of the KSW2 program is placed on this github.
-
-
-
-

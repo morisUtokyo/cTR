@@ -5,11 +5,30 @@
 #include "ksw2.h"
 #include "clusterTR.h"
 
+
+void dump_auxQ(int *a, int n){
+    fprintf(stderr, "Dump of aux Q\nReadID");
+    for(int i=0; i<n; i++)
+        fprintf(stderr, "\t%d", a[i]);
+    fprintf(stderr, "\n");
+    for(int i=0; i<n; i++){
+        fprintf(stderr, "%d", a[i]);
+        for(int j=0; j<n; j++){
+            fprintf(stderr, "\t%d", auxQ[a[i]][a[j]]);
+        }
+        fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+}
+
 // -----------------------------------------------------------------------
 // We implemented the method of bulding a neighbor joininng tree for a given distance matrix according to the description in:
 // https://en.wikipedia.org/wiki/Neighbor_joining
 // Recall that "given an additive distance matrix as input, neighbor joining is guaranteed to find the tree whose distances between taxa agree with it," though this condition is rare in practice.
 // -----------------------------------------------------------------------
+
+//#define DUMP_auxQ
+//#define DEBUG_NJ1
 int neighbor_joining(int *a, int n, int new_node, int **arg_dMat){
     // a is the array of active leaves in the NJ tree.
     // n is the number of active leaves in l.
@@ -56,7 +75,7 @@ int neighbor_joining(int *a, int n, int new_node, int **arg_dMat){
         delta_min_j = arg_dMat[a[min_i]][a[min_j]];
     }
 #ifdef DEBUG_NJ1
-    printf("minQ = %d\ti = %d\tj = %d are replaced with %d.\td(%d,%d)=%d,\td(%d,%d)=%d.\n",
+    fprintf(stderr, "minQ = %d\ti = %d\tj = %d are replaced with %d.\td(%d,%d)=%d,\td(%d,%d)=%d.\n",
            minQ, a[min_i], a[min_j], new_node,
            a[min_i], new_node, delta_min_i,
            a[min_j], new_node, delta_min_j);
@@ -114,7 +133,8 @@ int generate_NJtree_for_centroids(int numCentroids, int **arg_dMat){
     int *internalCentroids = malloc(sizeof(int)*numCentroids);
     for(int i=0; i<numCentroids; i++)
         internalCentroids[i]=i;
-    int NJroot = generate_NJtree( internalCentroids, numCentroids, (numCentroids+1), dMat);
+    int NJroot = generate_NJtree( internalCentroids, numCentroids, (numCentroids+1), arg_dMat);
+    //int NJroot = generate_NJtree( internalCentroids, numCentroids, (numCentroids+1), dMat);
     free(internalCentroids);
     return(NJroot);
 }
@@ -125,17 +145,16 @@ int outlier(int iReadID, int num_reads,
     int sum_len;
     for(int i=0; i<num_reads; i++)
         if(i != iReadID){
-            //---------------------------------------------
             sum_len= arg_readLen[individualReads[iReadID]] +
                          arg_readLen[individualReads[i]];
-            if( arg_dMat[iReadID][i]
-               < ceil(sum_len / 2 * (double)MAX_DIAMETER)  )
+            int threshold_ceil = ceil(sum_len / 2 * (double)MAX_DIAMETER);
+            if( arg_dMat[iReadID][i] < threshold_ceil  )
                 outlier_flag = 0;
-            //----------------------------------------------
         }
     return(outlier_flag);
 }
 
+//#define DUMP_NJtree
 int generate_NJtree_from_non_outliers(int num_reads, int *individualReads, int *arg_readLen, int **arg_dMat){
     // List non-outliers
     int *non_outliers = malloc(sizeof(int) * num_reads);
@@ -161,20 +180,6 @@ int generate_NJtree_from_non_outliers(int num_reads, int *individualReads, int *
     return(NJroot);
 }
 
-void dump_auxQ(int *a, int n){
-    fprintf(stderr, "Dump of aux Q\ninternalReadID");
-    for(int i=0; i<n; i++)
-        fprintf(stderr, "\t%d", a[i]);
-    fprintf(stderr, "\n");
-    for(int i=0; i<n; i++){
-        fprintf(stderr, "%d", a[i]);
-        for(int j=0; j<n; j++){
-            fprintf(stderr, "\t%d", auxQ[a[i]][a[j]]);
-        }
-        fprintf(stderr, "\n");
-    }
-    fprintf(stderr, "\n");
-}
 
 void printNJtree_sub(int root, int *individualReads, int *arg_readLen, int NumIndents, NJnode *arg_NJtree, char **arg_readIDs){
     if(root != TERMINAL_NODE){

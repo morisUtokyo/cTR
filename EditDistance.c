@@ -44,35 +44,6 @@ int align(const char *tseq, const char *qseq, int sc_mch, int sc_mis, int gapo, 
     return(ez.score);
 }
 
-int **compute_edit_distance(int num_reads, int *individualReads, char **arg_reads, int *arg_readLen, int print_CIGAR)
-{
-    int sc_mch = MATCH_SCORE;
-    int sc_mis = (-1) * sc_mch;
-    int gapo = 0;
-    int gape = 1;
-    
-    for(int i=0; i<num_reads; i++){
-        dMat[i][i] = 0;
-        for(int j=i+1; j<num_reads; j++){
-            int score, distance;
-            score = align(arg_reads[individualReads[i]], arg_reads[individualReads[j]], sc_mch, sc_mis, gapo, gape, print_CIGAR);
-            distance = MIN( arg_readLen[individualReads[i]], arg_readLen[individualReads[j]] ) - score/sc_mch ;
-            dMat[i][j] = distance;
-            dMat[j][i] = distance;
-        }
-    }
-#ifdef USE_BENCHMARK
-    // Example given in https://en.wikipedia.org/wiki/Neighbor_joining
-    num_reads = 5;
-    dMat[0][0] = 0; dMat[0][1] = 5; dMat[0][2] = 9; dMat[0][3] = 9; dMat[0][4] = 8;
-    dMat[1][0] = 5; dMat[1][1] = 0; dMat[1][2] = 10;dMat[1][3] = 10;dMat[1][4] = 9;
-    dMat[2][0] = 9; dMat[2][1] = 10;dMat[2][2] = 0; dMat[2][3] = 8; dMat[2][4] = 7;
-    dMat[3][0] = 9; dMat[3][1] = 10;dMat[3][2] = 8; dMat[3][3] = 0; dMat[3][4] = 3;
-    dMat[4][0] = 8; dMat[4][1] = 9; dMat[4][2] = 7; dMat[4][3] = 3; dMat[4][4] = 0;
-#endif
-    return(dMat);
-}
-
 
 void simple_dump_dMat(int n, int *listReadIDs, int *arg_readLen, int **arg_dMat){
     fprintf(stderr, "Dump of distance matrix\n");
@@ -112,3 +83,44 @@ void dump_dMat(int *a, int n, int *arg_readLen, int **arg_dMat){
     }
     fprintf(stderr, "\n");
 }
+
+//#define DEBUG_compute_edit_distance
+int **compute_edit_distance(int num_reads, int *individualReads, char **arg_reads, int *arg_readLen, int print_CIGAR)
+{
+    int sc_mch = MATCH_SCORE;
+    int sc_mis = (-1) * sc_mch;
+    int gapo = 0;
+    int gape = 1;
+    
+    for(int i=0; i<num_reads; i++){
+        dMat[i][i] = 0;
+        for(int j=i+1; j<num_reads; j++){
+            int score, distance;
+            score = align(arg_reads[individualReads[i]], arg_reads[individualReads[j]], sc_mch, sc_mis, gapo, gape, print_CIGAR);
+            distance = MIN( arg_readLen[individualReads[i]], arg_readLen[individualReads[j]] ) - score/sc_mch ;
+            dMat[i][j] = distance;
+            dMat[j][i] = distance;
+        }
+    }
+#ifdef DEBUG_compute_edit_distance
+    for(int i=0; i<num_reads; i++){
+        for(int j=i+1; j<num_reads; j++)
+            fprintf(stderr, "\t%d", dMat[i][j]);
+        fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+    
+#endif
+    
+#ifdef USE_BENCHMARK
+    // Example given in https://en.wikipedia.org/wiki/Neighbor_joining
+    num_reads = 5;
+    dMat[0][0] = 0; dMat[0][1] = 5; dMat[0][2] = 9; dMat[0][3] = 9; dMat[0][4] = 8;
+    dMat[1][0] = 5; dMat[1][1] = 0; dMat[1][2] = 10;dMat[1][3] = 10;dMat[1][4] = 9;
+    dMat[2][0] = 9; dMat[2][1] = 10;dMat[2][2] = 0; dMat[2][3] = 8; dMat[2][4] = 7;
+    dMat[3][0] = 9; dMat[3][1] = 10;dMat[3][2] = 8; dMat[3][3] = 0; dMat[3][4] = 3;
+    dMat[4][0] = 8; dMat[4][1] = 9; dMat[4][2] = 7; dMat[4][3] = 3; dMat[4][4] = 0;
+#endif
+    return(dMat);
+}
+
