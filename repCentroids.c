@@ -383,16 +383,20 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
             free(readIDsCent);
             
             // Output the NJ tree of representatives of centroids
-            int *repCentroidsList;
-            repCentroidsList = malloc(sizeof(int) * MAX_NUMBER_INDIVIDUALS);
-            //int repCentroidsList[MAX_NUMBER_INDIVIDUALS];
-            for(int i=0; i < numRepCentroids; i++)
-                repCentroidsList[i] = repCentroids[i].repReadID;
-            int **dMat_repCentroids = compute_edit_distance(numRepCentroids, repCentroidsList, reads, readLen, print_CIGAR);
-            NJroot = generate_NJtree_for_centroids( numRepCentroids, dMat_repCentroids);
-            fprintf(fp_analysis, "\nTh NJ tree of representative centroids\n");
-            printNJtree(NJroot, repCentroidsList, readLen, NJtree, readIDs);
-            free(repCentroidsList);
+            if(1 < numRepCentroids){
+                int *repCentroidsList;
+                repCentroidsList = malloc(sizeof(int) * MAX_NUMBER_INDIVIDUALS);
+                //int repCentroidsList[MAX_NUMBER_INDIVIDUALS];
+                for(int i=0; i < numRepCentroids; i++)
+                    repCentroidsList[i] = repCentroids[i].repReadID;
+                int **dMat_repCentroids = compute_edit_distance(numRepCentroids, repCentroidsList, reads, readLen, print_CIGAR);
+                NJroot = generate_NJtree_for_centroids( numRepCentroids, dMat_repCentroids);
+                fprintf(fp_analysis, "\nTh NJ tree of representative centroids. The number of representative centroids = %d\n", numRepCentroids);
+                printNJtree(NJroot, repCentroidsList, readLen, NJtree, readIDs);
+                free(repCentroidsList);
+            }else{
+                fprintf(fp_analysis, "\nTh NJ tree is not generated because a single representative centroid is obtained.\n");
+            }
         }
     }
     gettimeofday(&e, NULL);
