@@ -238,13 +238,21 @@ int top80p(oneCentroid *repCentroids, int numCentroids){
     return(numCentroids);
 }
 
-void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDirectory, int print_centroid_fasta, int print_analysis, int print_CIGAR){
+void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDirectory, int print_repIndividuals, int print_centroid_fasta, int print_analysis, int print_CIGAR){
 
     // Specify the output files
     char inputFile[1000]="";
     strcat(inputFile, inputDirectory);
     strcat(inputFile, fastaFileName);
     strcat(inputFile, ".fasta");
+    
+    if(print_repIndividuals == 1){
+        char file_repIndividuals[100] = "";
+        strcat(file_repIndividuals, outputDirectory);
+        strcat(file_repIndividuals, fastaFileName);
+        strcat(file_repIndividuals, "_rep_individuals.fasta");
+        fp_repIndividuals = fopen(file_repIndividuals, "w");
+    }
     
     if(print_centroid_fasta == 1){
         char file_repCentroids[100] = "";
@@ -327,6 +335,14 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
     gettimeofday(&e, NULL);
     time_haplotyping = (e.tv_sec - s.tv_sec) + (e.tv_usec - s.tv_usec)*1.0E-6;
 
+    // Print one or two representative alleles for individuals
+    if(print_repIndividuals == 1){
+        for(int i=0; i<numCentroids; i++){
+            fprintf(fp_repIndividuals, "> %s\n%s\n", readIDs[centroidList[i]], reads[centroidList[i]]);
+        }
+    }
+    
+    
     //---------------------------------------------------------
     // centroidList[] has centroids from individuals.
     // numCentroids is the number of centroids.
@@ -409,6 +425,7 @@ void comp_repCentroids(char *fastaFileName, char *inputDirectory, char *outputDi
         fprintf(fp_analysis, "Clustering\t%f\n",  time_clustering);
     }
     
+    if(print_repIndividuals == 1)   fclose(fp_repIndividuals);
     if(print_analysis == 1)         fclose(fp_analysis);
     if(print_centroid_fasta == 1)   fclose(fp_repCentroids);
     fclose(fp_table);

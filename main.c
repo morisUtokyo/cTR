@@ -25,10 +25,11 @@ int main(int argc, char *argv[])
     char outputDirectory[1000] = "";
     int print_analysis = 0;
     int print_centroid_fasta = 0;
+    int print_repIndividuals = 0;
     int print_CIGAR = 0;
     
     int opt;
-    while ((opt = getopt(argc, argv, "f:i:d:acsm")) != -1) {
+    while ((opt = getopt(argc, argv, "f:i:d:acesm")) != -1) {
         switch(opt){
             case 'f':
                 strcpy(fastaFileName,optarg);
@@ -45,6 +46,9 @@ int main(int argc, char *argv[])
             case 'c':
                 print_centroid_fasta = 1;
                 break;
+            case 'e':
+                print_repIndividuals = 1;
+                break;
             default:
                 print_error_message();
                 exit(EXIT_FAILURE);
@@ -52,7 +56,7 @@ int main(int argc, char *argv[])
     }
     
     // The input file must be a fasta file of reads from a single locus
-    comp_repCentroids(fastaFileName, inputDirectory, outputDirectory, print_centroid_fasta, print_analysis, print_CIGAR);
+    comp_repCentroids(fastaFileName, inputDirectory, outputDirectory, print_repIndividuals, print_centroid_fasta, print_analysis, print_CIGAR);
 
 
     return 0;
