@@ -38,12 +38,13 @@ cTR also generates a table that shows a list of representative reads in each gro
 
 ## Usage
 
-cTR [-ac] [-f fasta file] [-d output directory]
+cTR [-ace] [-f fasta file] [-d output directory]
 * -f: Input a fasta file name without .fasta
 * -i: Input directory
 * -d: Output the results to the specified directory 
 * -a: Output a detailed analysis of groups
 * -c: Output a fasta file of representative reads of groups
+* -e: Output a fasta file of one or two representative tandem repeat alleles for each individual 
 
 For example, see test.sh in the test directory.
 
