@@ -16,9 +16,37 @@ int inside(int node, int *insideNodes, int ith){
 }
 
 oneCentroid centroid(int *argReads, int numReads, int **arg_dMat){
+    int sum_of_distances = 0;
+    int min_i = 0;
+    for(int i=0; i<numReads; i++){
+        // For each member i, compute the sum of distances to other members.
+        int tmp_sum_of_distances = 0;
+        for(int j=0; j<numReads; j++)
+            tmp_sum_of_distances += arg_dMat[argReads[i]][argReads[j]];
+        
+        // Afterwards, select i that minimizes the sum of distances.
+        // When d(a,b)=0 and d(a,c)=d(b,c)=1, a and b have 1, but c has 2. Thus, a or b are selected.
+        if(i == min_i)
+            sum_of_distances = tmp_sum_of_distances;
+        else if(tmp_sum_of_distances < sum_of_distances){
+            min_i = i;
+            sum_of_distances = tmp_sum_of_distances;
+        }
+    }
+    oneCentroid oneCent;
+    oneCent.repReadID   = argReads[min_i];
+    oneCent.size        = numReads;
+    oneCent.radius      = sum_of_distances/numReads;
+    return(oneCent);
+}
+
+
+/*
+oneCentroid centroid(int *argReads, int numReads, int **arg_dMat){
     int min_radius = 10000000;
     int min_radius_i = 0;
     for(int i=0; i<numReads; i++){
+        // For each member i, compute the maximum distance to other members.
         int radius = 0;
         for(int j=0; j<numReads; j++){
             if( radius < arg_dMat[argReads[i]][argReads[j]] )
@@ -26,6 +54,8 @@ oneCentroid centroid(int *argReads, int numReads, int **arg_dMat){
                 radius = arg_dMat[argReads[i]][argReads[j]];
             }
         }
+         // Afterwards, select i that minimizes the maximum distance.
+         // When d(a,b)=0 and d(a,c)=d(b,c)=1, a or b are expected to be selected; however, c is also chosen as well.
         if(radius < min_radius){
             min_radius   = radius;
             min_radius_i = i;
@@ -38,6 +68,7 @@ oneCentroid centroid(int *argReads, int numReads, int **arg_dMat){
     oneCent.radius      = min_radius;
     return(oneCent);
 }
+ */
 
 int leaves_in_the_group(int subroot, NJnode *arg_NJtree, int *leaves, int numLeaves)
 {
